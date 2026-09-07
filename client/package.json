@@ -1,0 +1,35 @@
+{
+  "name": "fitnesstrack-client",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^9.2.0",
+    "@mui/material": "^9.2.0",
+    "@mui/x-charts": "^9.10.1",
+    "@mui/x-date-pickers": "^9.10.0",
+    "@reduxjs/toolkit": "^2.12.0",
+    "axios": "^1.18.1",
+    "dayjs": "^1.11.21",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-redux": "^9.3.0",
+    "react-router-dom": "^7.18.1",
+    "redux-persist": "^6.0.0",
+    "styled-components": "^6.4.4"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.4",
+    "vite": "^8.1.5"
+  }
+}
