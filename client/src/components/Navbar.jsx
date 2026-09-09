@@ -37,7 +37,7 @@ const NavLogo = styled(LinkR)`
   font-weight: 600;
   font-size: 18px;
   text-decoration: none;
-  color: ${({ theme }) => theme.black};
+  color: ${({ theme }) => theme.text_primary};
 `;
 const Logo = styled.img`
   height: 42px;

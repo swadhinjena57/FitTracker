@@ -4,10 +4,12 @@ import {
   UserRegister,
   addWorkout,
   changePassword,
+  deleteWorkout,
   getUserDashboard,
   getCurrentUser,
   getWorkoutsByDate,
   updateProfile,
+  updateWorkout,
 } from "../controllers/User.js";
 import { verifyToken } from "../middleware/verifyToken.js";
 
@@ -22,5 +24,7 @@ router.patch("/password", verifyToken, changePassword);
 router.get("/dashboard", verifyToken, getUserDashboard);
 router.get("/workout", verifyToken, getWorkoutsByDate);
 router.post("/workout", verifyToken, addWorkout);
+router.patch("/workout/:id", verifyToken, updateWorkout);
+router.delete("/workout/:id", verifyToken, deleteWorkout);
 
 export default router;

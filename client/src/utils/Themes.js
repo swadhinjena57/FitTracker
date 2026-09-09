@@ -1,4 +1,5 @@
 export const lightTheme = {
+  isDark: false,
   bg: "#FFFFFF",
   bgLight: "#FFFFFF",
   primary: "#007AFF",
@@ -29,6 +30,7 @@ export const lightTheme = {
 
 export const darkTheme = {
   ...lightTheme,
+  isDark: true,
   bg: "#111827",
   bgLight: "#1F2937",
   text_primary: "#F3F4F6",

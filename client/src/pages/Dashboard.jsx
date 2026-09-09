@@ -62,6 +62,18 @@ const CardWrapper = styled.div`
     gap: 12px;
   }
 `;
+const Toast = styled.div`
+  position: fixed;
+  top: 96px;
+  right: 24px;
+  z-index: 50;
+  padding: 12px 18px;
+  border: 1px solid ${({ theme }) => theme.green + "70"};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.card};
+  color: ${({ theme }) => theme.green};
+  box-shadow: 0 8px 22px ${({ theme }) => theme.black + 20};
+`;
 
 const Dashboard = () => {
   const currentDate = new Date();
@@ -75,6 +87,7 @@ const Dashboard = () => {
   const [buttonLoading, setButtonLoading] = useState(false);
   const [workoutDate, setWorkoutDate] = useState(today);
   const [todaysWorkouts, setTodaysWorkouts] = useState([]);
+  const [message, setMessage] = useState("");
   const [workout, setWorkout] = useState(`#Legs
 -Back Squat
 -5 setsX15 reps
@@ -103,16 +116,22 @@ const Dashboard = () => {
   const addNewWorkout = async () => {
     setButtonLoading(true);
     const token = localStorage.getItem("fittrack-app-token");
-    await addWorkout(token, { workoutString: workout, date: workoutDate })
-      .then((res) => {
-        dashboardData();
-        getTodaysWorkout();
-        setButtonLoading(false);
-      })
-      .catch((err) => {
-        alert(err);
-      });
+    try {
+      await addWorkout(token, { workoutString: workout, date: workoutDate });
+      await Promise.all([dashboardData(), getTodaysWorkout()]);
+      setMessage("Workouts added successfully.");
+    } catch (error) {
+      setMessage(error.response?.data?.message || "Unable to add workout.");
+    } finally {
+      setButtonLoading(false);
+    }
   };
+
+  useEffect(() => {
+    if (!message) return undefined;
+    const timer = window.setTimeout(() => setMessage(""), 3000);
+    return () => window.clearTimeout(timer);
+  }, [message]);
 
   useEffect(() => {
     dashboardData();
@@ -150,6 +169,7 @@ const Dashboard = () => {
           </CardWrapper>
         </Section>
       </Wrapper>
+      {message && <Toast>{message}</Toast>}
     </Container>
   );
 };

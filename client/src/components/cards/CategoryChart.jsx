@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { PieChart } from "@mui/x-charts/PieChart";
+import { useTheme } from "styled-components";
 
 const Card = styled.div`
   flex: 1;
@@ -24,24 +25,38 @@ const Title = styled.div`
     font-size: 14px;
   }
 `;
+const ChartFrame = styled.div`
+  .MuiCharts-root text,
+  .MuiCharts-root tspan,
+  svg text,
+  svg tspan {
+    fill: ${({ isDark, theme }) => (isDark ? `${theme.white} !important` : `${theme.text_secondary} !important`)};
+  }
+`;
 
 const CategoryChart = ({ data }) => {
+  const theme = useTheme();
   return (
     <Card>
       <Title>Calories by Category</Title>
       {data?.pieChartData && (
-        <PieChart
-          series={[
-            {
-              data: data?.pieChartData,
-              innerRadius: 30,
-              outerRadius: 120,
-              paddingAngle: 5,
-              cornerRadius: 5,
-            },
-          ]}
-          height={300}
-        />
+        <ChartFrame isDark={theme.isDark}>
+          <PieChart
+            series={[
+              {
+                data: data?.pieChartData,
+                innerRadius: 30,
+                outerRadius: 120,
+                paddingAngle: 5,
+                cornerRadius: 5,
+              },
+            ]}
+            sx={{
+              "& text, & tspan, & .MuiChartsLegend-label": { fill: `${theme.isDark ? theme.white : theme.text_secondary} !important` },
+            }}
+            height={300}
+          />
+        </ChartFrame>
       )}
     </Card>
   );

@@ -568,3 +568,51 @@ export const addWorkout = async (req, res, next) => {
     return next(error);
   }
 };
+
+export const updateWorkout = async (req, res, next) => {
+  try {
+    const allowedFields = ["category", "workoutName", "sets", "reps", "weight", "duration"];
+    const updates = Object.fromEntries(
+      allowedFields
+        .filter((field) => req.body[field] !== undefined)
+        .map((field) => [field, req.body[field]])
+    );
+
+    for (const field of ["sets", "reps", "weight", "duration"]) {
+      if (updates[field] !== undefined) updates[field] = Number(updates[field]);
+    }
+
+    if (updates.category !== undefined) updates.category = String(updates.category).trim();
+    if (updates.workoutName !== undefined) updates.workoutName = String(updates.workoutName).trim();
+
+    if (!updates.category || !updates.workoutName) {
+      return next(createError(400, "Category and workout name are required."));
+    }
+
+    if (["sets", "reps", "weight", "duration"].some((field) => !Number.isFinite(updates[field]) || updates[field] < 0)) {
+      return next(createError(400, "Workout values must be valid positive numbers."));
+    }
+
+    updates.caloriesBurned = calculateCaloriesBurnt(updates);
+    const workout = await Workout.findOneAndUpdate(
+      { _id: req.params.id, user: req.user.id },
+      { $set: updates },
+      { returnDocument: "after", runValidators: true }
+    ).lean();
+
+    if (!workout) return next(createError(404, "Workout not found."));
+    return res.status(200).json({ message: "Workout edited successfully", workout });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deleteWorkout = async (req, res, next) => {
+  try {
+    const result = await Workout.deleteOne({ _id: req.params.id, user: req.user.id });
+    if (!result.deletedCount) return next(createError(404, "Workout not found."));
+    return res.status(200).json({ message: "Workout deleted successfully" });
+  } catch (error) {
+    return next(error);
+  }
+};

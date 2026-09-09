@@ -1,6 +1,7 @@
 import React from "react";
 import styled from "styled-components";
 import { BarChart } from "@mui/x-charts/BarChart";
+import { useTheme } from "styled-components";
 
 const Card = styled.div`
   flex: 1;
@@ -26,6 +27,7 @@ const Title = styled.div`
 `;
 
 const WeeklyStatCard = ({ data }) => {
+  const theme = useTheme();
   return (
     <Card>
       <Title>Weekly Calories Burned</Title>
@@ -35,6 +37,11 @@ const WeeklyStatCard = ({ data }) => {
             { scaleType: "band", data: data?.totalWeeksCaloriesBurnt?.weeks },
           ]}
           series={[{ data: data?.totalWeeksCaloriesBurnt?.caloriesBurned }]}
+          sx={{
+            "& text": { fill: `${theme.text_secondary} !important` },
+            "& .MuiChartsAxis-tickLabel, & .MuiChartsAxis-label": { fill: `${theme.text_secondary} !important` },
+            "& .MuiChartsAxis-line, & .MuiChartsAxis-tick, & .MuiChartsGrid-line": { stroke: `${theme.text_secondary} !important` },
+          }}
           height={300}
         />
       )}

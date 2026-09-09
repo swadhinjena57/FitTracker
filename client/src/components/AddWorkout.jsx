@@ -41,6 +41,7 @@ const DateInput = styled.input`
   font: inherit;
   font-size: 14px;
   outline: none;
+  color-scheme: ${({ theme }) => (theme.isDark ? "dark" : "light")};
   &:focus {
     border-color: ${({ theme }) => theme.secondary};
   }

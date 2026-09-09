@@ -178,6 +178,24 @@ const Message = styled.div`
   color: ${({ error, theme }) => (error ? theme.red : theme.green)};
   font-size: 13px;
 `;
+const ProfileToast = styled.div`
+  position: fixed;
+  top: 96px;
+  right: 24px;
+  z-index: 50;
+  padding: 12px 18px;
+  border: 1px solid ${({ error, theme }) => (error ? theme.red : theme.green) + "70"};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.card};
+  color: ${({ error, theme }) => (error ? theme.red : theme.green)};
+  box-shadow: 0 8px 22px ${({ theme }) => theme.black + 20};
+  font-size: 13px;
+  @media (max-width: 600px) {
+    right: 16px;
+    left: 16px;
+    text-align: center;
+  }
+`;
 const Footer = styled.footer`
   margin-top: 42px;
   color: ${({ theme }) => theme.text_secondary};
@@ -292,12 +310,20 @@ const Profile = () => {
   const [isPasswordOpen, setIsPasswordOpen] = useState(false);
   const [visiblePasswords, setVisiblePasswords] = useState({});
   const [message, setMessage] = useState("");
+  const [messageIsError, setMessageIsError] = useState(false);
   const [editForm, setEditForm] = useState({});
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ currentPassword: "", newPassword: "", confirmPassword: "" });
 
   useEffect(() => {
     if (currentUser) setEditForm({ ...currentUser });
   }, [currentUser]);
+
+  useEffect(() => {
+    if (!message) return undefined;
+    const timer = window.setTimeout(() => setMessage(""), 3000);
+    return () => window.clearTimeout(timer);
+  }, [message]);
 
   useEffect(() => {
     const token = localStorage.getItem("fittrack-app-token");
@@ -326,7 +352,15 @@ const Profile = () => {
   };
   const saveProfile = async (event) => {
     event.preventDefault();
+    if (!token) {
+      setMessageIsError(true);
+      setMessage("Your session has expired. Please sign in again.");
+      return;
+    }
+
     setMessage("");
+    setMessageIsError(false);
+    setIsSavingProfile(true);
     try {
       const response = await updateProfile(token, {
         ...editForm,
@@ -340,8 +374,12 @@ const Profile = () => {
       dispatch(updateUser(response.data.user));
       setIsEditOpen(false);
       setMessage("Profile updated successfully.");
+      setMessageIsError(false);
     } catch (error) {
+      setMessageIsError(true);
       setMessage(error.response?.data?.message || "Unable to update profile.");
+    } finally {
+      setIsSavingProfile(false);
     }
   };
   const savePassword = async (event) => {
@@ -365,6 +403,7 @@ const Profile = () => {
   const toggleTheme = async () => {
     const nextTheme = currentUser?.theme === "dark" ? "light" : "dark";
     localStorage.setItem("fittrack-theme", nextTheme);
+    dispatch(updateUser({ ...currentUser, theme: nextTheme }));
     window.dispatchEvent(new CustomEvent("fittrack-theme-change", { detail: nextTheme }));
     try {
       const response = await updateProfile(token, { theme: nextTheme });
@@ -426,7 +465,7 @@ const Profile = () => {
             <SettingButton type="button" onClick={() => dispatch(logout())}><LogoutRounded />Logout</SettingButton>
           </Settings>
         </Panel>
-        {message && <Message>{message}</Message>}
+        {message && <ProfileToast error={messageIsError}>{message}</ProfileToast>}
         <Footer>
           <div>Track. Train. Transform. 💪</div>
           <div>© 2026 FitTrack. All rights reserved.</div>
@@ -444,7 +483,7 @@ const Profile = () => {
                   <Field key={name}>{label}<Input name={name} type={['age', 'height', 'weight', 'targetWeight', 'weeklyWorkoutGoal', 'dailyCalories'].includes(name) ? 'number' : 'text'} value={editForm[name] ?? ''} onChange={updateField} /></Field>
                 ))}
               </FormGrid>
-              <ModalActions><ActionButton type="button" onClick={() => setIsEditOpen(false)}>Cancel</ActionButton><ActionButton primary type="submit">Save Profile</ActionButton></ModalActions>
+              <ModalActions><ActionButton type="button" onClick={() => setIsEditOpen(false)}>Cancel</ActionButton><ActionButton primary type="submit" disabled={isSavingProfile}>{isSavingProfile ? "Saving..." : "Save Profile"}</ActionButton></ModalActions>
             </form>
           </Modal>
         </ModalBackdrop>

@@ -6,12 +6,18 @@
 .env.*
 !.env.example
 
+# Local agent metadata
+.codex/
+
 # Build and production output
 **/dist/
 build/
+.cache/
+.vite/
 
 # Testing and coverage
 coverage/
+.nyc_output/
 
 # Logs
 *.log

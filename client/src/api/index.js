@@ -33,6 +33,16 @@ export const getWorkouts = (token, date = "") =>
     headers: { Authorization: `Bearer ${token}` },
   });
 
+export const updateWorkout = (token, id, data) =>
+  API.patch(`/user/workout/${id}`, data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+export const deleteWorkout = (token, id) =>
+  API.delete(`/user/workout/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
 export const addWorkout = (token, data) =>
   API.post("/user/workout", data, {
     headers: { Authorization: `Bearer ${token}` },

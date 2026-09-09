@@ -65,6 +65,8 @@ Set these environment variables on the Render service:
 - `JWT`: a long random secret
 - `CLIENT_URL`: the URL where your local frontend is served, normally `http://localhost:3000`
 
+If Node reports `querySrv ECONNREFUSED` while MongoDB Compass connects successfully, use Atlas's standard `mongodb://` driver connection string instead of the `mongodb+srv://` string. Keep the same username, password, database name, TLS option, `authSource`, and replica set values.
+
 To run the frontend locally against the deployed backend, create `client/.env` with:
 
 ```env

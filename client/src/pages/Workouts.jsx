@@ -4,8 +4,10 @@ import WorkoutCard from "../components/cards/WorkoutCard";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DateCalendar } from "@mui/x-date-pickers";
-import { getWorkouts } from "../api";
+import dayjs from "dayjs";
+import { deleteWorkout, getWorkouts, updateWorkout } from "../api";
 import { CircularProgress } from "@mui/material";
+import { useTheme } from "styled-components";
 
 const Container = styled.div`
   flex: 1;
@@ -70,20 +72,84 @@ const SecTitle = styled.div`
   color: ${({ theme }) => theme.text_primary};
   font-weight: 500;
 `;
+const Toast = styled.div`
+  position: fixed;
+  top: 96px;
+  right: 24px;
+  z-index: 50;
+  padding: 12px 18px;
+  border: 1px solid ${({ error, theme }) => (error ? theme.red : theme.green) + "70"};
+  border-radius: 8px;
+  background: ${({ theme }) => theme.card};
+  color: ${({ error, theme }) => (error ? theme.red : theme.green)};
+  box-shadow: 0 8px 22px ${({ theme }) => theme.black + 20};
+`;
+const CalendarFrame = styled.div`
+  .MuiPickersCalendarHeader-label,
+  .MuiDayCalendar-weekDayLabel,
+  .MuiPickersDay-root,
+  .MuiPickersDay-root *,
+  .MuiPickersArrowSwitcher-button,
+  .MuiPickersCalendarHeader-switchViewButton,
+  .MuiPickersCalendarHeader-switchViewButton * {
+    color: ${({ isDark, theme }) => (isDark ? `${theme.white} !important` : `${theme.text_primary} !important`)};
+  }
+`;
 
 const Workouts = () => {
+  const theme = useTheme();
   const [todaysWorkouts, setTodaysWorkouts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [date, setDate] = useState("");
+  const [message, setMessage] = useState("");
+  const [messageIsError, setMessageIsError] = useState(false);
+
+  useEffect(() => {
+    if (!message) return undefined;
+    const timer = window.setTimeout(() => setMessage(""), 3000);
+    return () => window.clearTimeout(timer);
+  }, [message]);
 
   const getTodaysWorkout = async () => {
     setLoading(true);
     const token = localStorage.getItem("fittrack-app-token");
-    await getWorkouts(token, date).then((res) => {
-      setTodaysWorkouts(res?.data?.todaysWorkouts);
-      console.log(res.data);
+    try {
+      const response = await getWorkouts(token, date);
+      setTodaysWorkouts(response?.data?.todaysWorkouts ?? []);
+    } catch (error) {
+      setMessageIsError(true);
+      setMessage(error.response?.data?.message || "Unable to load workouts.");
+    } finally {
       setLoading(false);
-    });
+    }
+  };
+
+  const editWorkout = async (id, updates) => {
+    try {
+      const token = localStorage.getItem("fittrack-app-token");
+      const response = await updateWorkout(token, id, updates);
+      setTodaysWorkouts((current) => current.map((workout) => workout._id === id ? response.data.workout : workout));
+      setMessageIsError(false);
+      setMessage("Workout edited successfully.");
+    } catch (error) {
+      setMessageIsError(true);
+      setMessage(error.response?.data?.message || "Unable to edit workout.");
+      throw error;
+    }
+  };
+
+  const removeWorkout = async (id) => {
+    if (!window.confirm("Delete this workout?")) return;
+    try {
+      const token = localStorage.getItem("fittrack-app-token");
+      await deleteWorkout(token, id);
+      setTodaysWorkouts((current) => current.filter((workout) => workout._id !== id));
+      setMessageIsError(false);
+      setMessage("Workout deleted successfully.");
+    } catch (error) {
+      setMessageIsError(true);
+      setMessage(error.response?.data?.message || "Unable to delete workout.");
+    }
   };
 
   useEffect(() => {
@@ -95,26 +161,37 @@ const Workouts = () => {
         <Left>
           <Title>Select Date</Title>
           <LocalizationProvider dateAdapter={AdapterDayjs}>
-            <DateCalendar
-              onChange={(value) => setDate(value ? value.format("YYYY-MM-DD") : "")}
-            />
+            <CalendarFrame isDark={theme.isDark}>
+              <DateCalendar
+                sx={{
+                  color: theme.isDark ? theme.white : theme.text_primary,
+                  "& .MuiPickersDay-root.Mui-selected": { backgroundColor: `${theme.primary} !important`, color: `${theme.white} !important` },
+                  "& .MuiPickersDay-root.MuiPickersDay-today": { borderColor: `${theme.primary} !important` },
+                  "& .MuiSvgIcon-root": { color: `${theme.isDark ? theme.white : theme.text_primary} !important` },
+                }}
+                onChange={(value) => setDate(value ? value.format("YYYY-MM-DD") : "")}
+              />
+            </CalendarFrame>
           </LocalizationProvider>
         </Left>
         <Right>
           <Section>
-            <SecTitle>Todays Workout</SecTitle>
+            <SecTitle>
+              {date ? `Workouts for ${dayjs(date).format("MMMM D, YYYY")}` : "Today's Workout"}
+            </SecTitle>
             {loading ? (
               <CircularProgress />
             ) : (
               <CardWrapper>
                 {todaysWorkouts.map((workout) => (
-                  <WorkoutCard key={workout._id} workout={workout} />
+                  <WorkoutCard key={workout._id} workout={workout} onEdit={editWorkout} onDelete={removeWorkout} showActions />
                 ))}
               </CardWrapper>
             )}
           </Section>
         </Right>
       </Wrapper>
+      {message && <Toast error={messageIsError}>{message}</Toast>}
     </Container>
   );
 };
