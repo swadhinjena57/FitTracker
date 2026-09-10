@@ -74,3 +74,21 @@ VITE_API_URL=https://your-backend.onrender.com/api
 ```
 
 Do not commit either `.env` file or production secrets. `VITE_API_URL` is read when Vite starts, so restart the local frontend after changing it.
+
+## Deploy the frontend on Vercel
+
+In the Vercel project settings, add this environment variable for the Production environment:
+
+```env
+VITE_API_URL=https://your-backend.onrender.com/api
+```
+
+Then redeploy the Vercel project. Vercel does not use your local `client/.env` file unless the value is configured in Vercel.
+
+Also set this Render backend variable to allow browser requests from Vercel:
+
+```env
+CLIENT_URL=https://your.frontend.vercel.app
+```
+
+After changing `CLIENT_URL`, redeploy the Render backend. The URL must not have a trailing slash.
