@@ -39,7 +39,8 @@ const SignIn = () => {
     return true;
   };
 
-  const handelSignIn = async () => {
+  const handelSignIn = async (event) => {
+    event?.preventDefault();
     setLoading(true);
     setButtonDisabled(true);
     if (!validateInputs()) {
@@ -48,18 +49,20 @@ const SignIn = () => {
       return;
     }
 
-    {
-      await UserSignIn({ email, password })
-        .then((res) => {
-          dispatch(loginSuccess({ ...res.data, message: "Login successful." }));
-          setLoading(false);
-          setButtonDisabled(false);
-        })
-        .catch((err) => {
-          alert(err.response?.data?.message || "Something went wrong. Please try again.");
-          setLoading(false);
-          setButtonDisabled(false);
-        });
+    try {
+      const response = await UserSignIn({ email: email.trim(), password });
+      dispatch(loginSuccess({ ...response.data, message: "Login successful." }));
+    } catch (err) {
+      if (err.response) {
+        alert(err.response.data?.message || `Login failed (${err.response.status}).`);
+      } else if (err.request) {
+        alert("Unable to reach the FitTrack server. Check the API URL or start the server.");
+      } else {
+        alert("Login could not be completed. Please try again.");
+      }
+    } finally {
+      setLoading(false);
+      setButtonDisabled(false);
     }
   };
 
@@ -69,12 +72,13 @@ const SignIn = () => {
         <Title>Welcome to FitTrack 👋</Title>
         <Span>Please login with your details here</Span>
       </div>
-      <div
+      <form
         style={{
           display: "flex",
           gap: "20px",
           flexDirection: "column",
         }}
+        onSubmit={handelSignIn}
       >
         <TextInput
           label="Email Address"
@@ -91,11 +95,11 @@ const SignIn = () => {
         />
         <Button
           text="SignIn"
-          onClick={handelSignIn}
+          onClick={() => handelSignIn()}
           isLoading={loading}
           isDisabled={buttonDisabled}
         />
-      </div>
+      </form>
     </Container>
   );
 };

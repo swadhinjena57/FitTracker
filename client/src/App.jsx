@@ -11,6 +11,7 @@ import Tutorials from "./pages/Tutorials";
 import Blogs from "./pages/Blogs";
 import BlogDetail from "./pages/BlogDetail";
 import Profile from "./pages/Profile";
+import WorkoutPlans from "./pages/WorkoutPlans";
 import { getCurrentUser } from "./api";
 import { clearAuthMessage, logout, restoreSession } from "./redux/reducers/userSlice";
 
@@ -95,6 +96,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Dashboard />} />
               <Route path="/workouts" element={<Workouts />} />
+              <Route path="/workout-plan" element={<WorkoutPlans />} />
               <Route path="/tutorials" element={<Tutorials />} />
               <Route path="/blogs" element={<Blogs />} />
               <Route path="/blogs/:slug" element={<BlogDetail />} />

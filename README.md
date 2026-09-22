@@ -2,6 +2,10 @@
 
 A modernized MERN fitness tracking app.
 
+```Live demo:-
+            https://fit-tracker-delta-seven.vercel.app/
+```
+
 ## Stack
 
 - React 19 + Vite 8

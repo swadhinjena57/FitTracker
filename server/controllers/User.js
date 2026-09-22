@@ -6,6 +6,7 @@ import Profile from "../models/Profile.js";
 import ProfileImage from "../models/ProfileImage.js";
 import UserSettings from "../models/UserSettings.js";
 import Workout from "../models/Workout.js";
+import WorkoutPlan from "../models/WorkoutPlan.js";
 
 const createToken = (userId) =>
   jwt.sign({ id: userId.toString() }, process.env.JWT, { expiresIn: "7d" });
@@ -612,6 +613,95 @@ export const deleteWorkout = async (req, res, next) => {
     const result = await Workout.deleteOne({ _id: req.params.id, user: req.user.id });
     if (!result.deletedCount) return next(createError(404, "Workout not found."));
     return res.status(200).json({ message: "Workout deleted successfully" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+const normalizeWorkoutPlan = (body) => {
+  const title = String(body.title || "").trim();
+  const goal = String(body.goal || "General fitness").trim();
+  const days = Array.isArray(body.days)
+    ? body.days.slice(0, 7).map((day, dayIndex) => ({
+        day: Number(day.day) || dayIndex + 1,
+        name: String(day.name || `Day ${dayIndex + 1}`).trim(),
+        focus: String(day.focus || "").trim(),
+        exercises: Array.isArray(day.exercises)
+          ? day.exercises.slice(0, 30).map((exercise) => ({
+              name: String(exercise.name || "").trim(),
+              sets: Number(exercise.sets),
+              reps: String(exercise.reps || "").trim(),
+              weight: String(exercise.weight || "Bodyweight").trim(),
+              rest: String(exercise.rest || "60 sec").trim(),
+              duration: String(exercise.duration || "").trim(),
+              comments: String(exercise.comments || "").trim(),
+            }))
+          : [],
+      }))
+    : [];
+
+  return { title, goal, days };
+};
+
+const validateWorkoutPlan = ({ title, days }) => {
+  if (!title) return "Plan title is required.";
+  if (!days.length) return "Add at least one day to your workout plan.";
+  if (days.some((day) => !day.name || !day.exercises.length)) {
+    return "Each plan day needs a name and at least one exercise.";
+  }
+  if (days.some((day) => day.exercises.some((exercise) =>
+    !exercise.name || !exercise.reps || !Number.isFinite(exercise.sets) || exercise.sets < 1
+  ))) {
+    return "Each exercise needs a name, sets, and reps.";
+  }
+  return null;
+};
+
+export const getWorkoutPlans = async (req, res, next) => {
+  try {
+    const plans = await WorkoutPlan.find({ user: req.user.id }).sort({ updatedAt: -1 }).lean();
+    return res.status(200).json({ plans });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const createWorkoutPlan = async (req, res, next) => {
+  try {
+    const planData = normalizeWorkoutPlan(req.body);
+    const validationMessage = validateWorkoutPlan(planData);
+    if (validationMessage) return next(createError(400, validationMessage));
+
+    const plan = await WorkoutPlan.create({ ...planData, user: req.user.id });
+    return res.status(201).json({ message: "Workout plan created successfully.", plan });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const updateWorkoutPlan = async (req, res, next) => {
+  try {
+    const planData = normalizeWorkoutPlan(req.body);
+    const validationMessage = validateWorkoutPlan(planData);
+    if (validationMessage) return next(createError(400, validationMessage));
+
+    const plan = await WorkoutPlan.findOneAndUpdate(
+      { _id: req.params.id, user: req.user.id },
+      { $set: planData },
+      { returnDocument: "after", runValidators: true }
+    ).lean();
+    if (!plan) return next(createError(404, "Workout plan not found."));
+    return res.status(200).json({ message: "Workout plan updated successfully.", plan });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const deleteWorkoutPlan = async (req, res, next) => {
+  try {
+    const result = await WorkoutPlan.deleteOne({ _id: req.params.id, user: req.user.id });
+    if (!result.deletedCount) return next(createError(404, "Workout plan not found."));
+    return res.status(200).json({ message: "Workout plan deleted successfully." });
   } catch (error) {
     return next(error);
   }
