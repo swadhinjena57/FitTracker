@@ -57,6 +57,14 @@ const CardWrapper = styled.div`
     gap: 12px;
   }
 `;
+const EmptyState = styled.div`
+  width: 100%;
+  padding: 42px 20px;
+  border: 1px dashed ${({ theme }) => theme.text_primary + 40};
+  border-radius: 10px;
+  color: ${({ theme }) => theme.text_secondary};
+  text-align: center;
+`;
 const Section = styled.div`
   display: flex;
   flex-direction: column;
@@ -89,6 +97,8 @@ const CalendarFrame = styled.div`
   .MuiDayCalendar-weekDayLabel,
   .MuiPickersDay-root,
   .MuiPickersDay-root *,
+  .MuiPickersDay-dayWithMargin,
+  .MuiPickersDay-root.Mui-disabled,
   .MuiPickersArrowSwitcher-button,
   .MuiPickersCalendarHeader-switchViewButton,
   .MuiPickersCalendarHeader-switchViewButton * {
@@ -169,6 +179,21 @@ const Workouts = () => {
                   "& .MuiPickersDay-root.MuiPickersDay-today": { borderColor: `${theme.primary} !important` },
                   "& .MuiSvgIcon-root": { color: `${theme.isDark ? theme.white : theme.text_primary} !important` },
                 }}
+                slotProps={{
+                  day: {
+                    sx: {
+                      color: `${theme.isDark ? theme.white : theme.text_primary} !important`,
+                      "&.Mui-disabled": {
+                        color: `${theme.isDark ? theme.white : theme.text_primary} !important`,
+                        opacity: 0.55,
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: `${theme.primary} !important`,
+                        color: `${theme.white} !important`,
+                      },
+                    },
+                  },
+                }}
                 onChange={(value) => setDate(value ? value.format("YYYY-MM-DD") : "")}
               />
             </CalendarFrame>
@@ -183,9 +208,9 @@ const Workouts = () => {
               <CircularProgress />
             ) : (
               <CardWrapper>
-                {todaysWorkouts.map((workout) => (
+                {todaysWorkouts.length > 0 ? todaysWorkouts.map((workout) => (
                   <WorkoutCard key={workout._id} workout={workout} onEdit={editWorkout} onDelete={removeWorkout} showActions />
-                ))}
+                )) : <EmptyState>No workout added.</EmptyState>}
               </CardWrapper>
             )}
           </Section>

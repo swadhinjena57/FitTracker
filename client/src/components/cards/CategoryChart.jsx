@@ -6,6 +6,8 @@ import { useTheme } from "styled-components";
 const Card = styled.div`
   flex: 1;
   min-width: 280px;
+  height: 570px;
+  box-sizing: border-box;
   padding: 24px;
   border: 1px solid ${({ theme }) => theme.text_primary + 20};
   border-radius: 14px;
@@ -14,6 +16,7 @@ const Card = styled.div`
   flex-direction: column;
   gap: 6px;
   @media (max-width: 600px) {
+    height: 540px;
     padding: 16px;
   }
 `;
@@ -51,10 +54,15 @@ const CategoryChart = ({ data }) => {
                 cornerRadius: 5,
               },
             ]}
-            sx={{
-              "& text, & tspan, & .MuiChartsLegend-label": { fill: `${theme.isDark ? theme.white : theme.text_secondary} !important` },
-            }}
-            height={300}
+                    sx={{
+                      "& text, & tspan, & .MuiChartsLegend-label": {
+                        fill: `${theme.isDark ? theme.white : theme.text_secondary} !important`,
+                      },
+                      "& .MuiChartsLegend-label": {
+                        color: `${theme.isDark ? theme.white : theme.text_secondary} !important`,
+                      },
+                    }}
+                    height={420}
           />
         </ChartFrame>
       )}

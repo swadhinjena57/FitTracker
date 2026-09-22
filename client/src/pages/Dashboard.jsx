@@ -88,11 +88,9 @@ const Dashboard = () => {
   const [workoutDate, setWorkoutDate] = useState(today);
   const [todaysWorkouts, setTodaysWorkouts] = useState([]);
   const [message, setMessage] = useState("");
-  const [workout, setWorkout] = useState(`#Legs
--Back Squat
--5 setsX15 reps
--30 kg
--10 min`);
+  const [exercises, setExercises] = useState([
+    { category: "Legs", workoutName: "Back Squat", sets: 5, reps: 15, weight: "30 kg", duration: 10 },
+  ]);
 
   const dashboardData = async () => {
     setLoading(true);
@@ -117,7 +115,12 @@ const Dashboard = () => {
     setButtonLoading(true);
     const token = localStorage.getItem("fittrack-app-token");
     try {
-      await addWorkout(token, { workoutString: workout, date: workoutDate });
+      const workoutString = exercises.map((exercise) => `#${exercise.category}
+    -${exercise.workoutName}
+    -${exercise.sets} setsX${exercise.reps} reps
+    -${exercise.weight}
+    -${exercise.duration} min`).join("\n");
+      await addWorkout(token, { workoutString, date: workoutDate });
       await Promise.all([dashboardData(), getTodaysWorkout()]);
       setMessage("Workouts added successfully.");
     } catch (error) {
@@ -151,8 +154,8 @@ const Dashboard = () => {
           <WeeklyStatCard data={data} />
           <CategoryChart data={data} />
           <AddWorkout
-            workout={workout}
-            setWorkout={setWorkout}
+            exercises={exercises}
+            setExercises={setExercises}
             workoutDate={workoutDate}
             setWorkoutDate={setWorkoutDate}
             addNewWorkout={addNewWorkout}
